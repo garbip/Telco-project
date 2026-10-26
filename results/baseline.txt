@@ -1,0 +1,34 @@
+=== BASELINE: No simulated degradation ===
+Mon Oct 26 08:29:03 PM UTC 2026
+
+--- UE to Core: ICMP ---
+PING 10.0.2.2 (10.0.2.2) 56(84) bytes of data.
+64 bytes from 10.0.2.2: icmp_seq=1 ttl=63 time=0.234 ms
+64 bytes from 10.0.2.2: icmp_seq=2 ttl=63 time=0.084 ms
+64 bytes from 10.0.2.2: icmp_seq=3 ttl=63 time=0.072 ms
+64 bytes from 10.0.2.2: icmp_seq=4 ttl=63 time=0.060 ms
+64 bytes from 10.0.2.2: icmp_seq=5 ttl=63 time=0.055 ms
+64 bytes from 10.0.2.2: icmp_seq=6 ttl=63 time=0.061 ms
+64 bytes from 10.0.2.2: icmp_seq=7 ttl=63 time=0.064 ms
+64 bytes from 10.0.2.2: icmp_seq=8 ttl=63 time=0.053 ms
+64 bytes from 10.0.2.2: icmp_seq=9 ttl=63 time=0.051 ms
+64 bytes from 10.0.2.2: icmp_seq=10 ttl=63 time=0.056 ms
+64 bytes from 10.0.2.2: icmp_seq=11 ttl=63 time=0.055 ms
+64 bytes from 10.0.2.2: icmp_seq=12 ttl=63 time=0.059 ms
+64 bytes from 10.0.2.2: icmp_seq=13 ttl=63 time=0.076 ms
+64 bytes from 10.0.2.2: icmp_seq=14 ttl=63 time=0.124 ms
+64 bytes from 10.0.2.2: icmp_seq=15 ttl=63 time=0.049 ms
+64 bytes from 10.0.2.2: icmp_seq=16 ttl=63 time=0.076 ms
+64 bytes from 10.0.2.2: icmp_seq=17 ttl=63 time=0.085 ms
+64 bytes from 10.0.2.2: icmp_seq=18 ttl=63 time=0.212 ms
+64 bytes from 10.0.2.2: icmp_seq=19 ttl=63 time=0.058 ms
+64 bytes from 10.0.2.2: icmp_seq=20 ttl=63 time=0.217 ms
+
+--- 10.0.2.2 ping statistics ---
+20 packets transmitted, 20 received, 0% packet loss, time 19487ms
+rtt min/avg/max/mdev = 0.049/0.090/0.234/0.057 ms
+
+--- UE to Nginx: HTTP ---
+HTTP status: 200
+Connect time: 0.000425s
+Total time: 0.003139s

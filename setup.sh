@@ -85,8 +85,10 @@ ip link set host-core up
 echo "=== Configuring routes ==="
 
 ip -n ue route replace default via 10.0.1.1
+ip -n access route replace 10.0.3.0/24 via 10.0.2.2
 ip -n core route replace 10.0.1.0/24 via 10.0.2.1
 ip -n core route replace 10.0.3.0/24 via 10.0.4.1
+ip route replace 10.0.1.0/24 via 10.0.4.2 dev host-core
 
 echo "=== Enabling IP forwarding ==="
 
@@ -116,6 +118,12 @@ iptables -t nat -C POSTROUTING \
     -o "$DOCKER_BRIDGE" -j MASQUERADE 2>/dev/null ||
 iptables -t nat -I POSTROUTING 1 \
     -s 10.0.4.0/24 -d 10.0.3.0/24 \
+    -o "$DOCKER_BRIDGE" -j MASQUERADE
+iptables -t nat -C POSTROUTING \
+    -s 10.0.1.0/24 -d 10.0.3.0/24 \
+    -o "$DOCKER_BRIDGE" -j MASQUERADE 2>/dev/null ||
+iptables -t nat -I POSTROUTING 1 \
+    -s 10.0.1.0/24 -d 10.0.3.0/24 \
     -o "$DOCKER_BRIDGE" -j MASQUERADE
 
 echo "=== Configuring Docker forwarding ==="

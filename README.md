@@ -1,4 +1,4 @@
-# Telco Project - In development, not yet finalazed
+# Telco Project - In development, not yet finalized
 
 ## Overview
 This project focuses on setting up a basic telecommunications network environment in Linux and testing its connectivity and performance.

@@ -1,0 +1,9 @@
+log/
+**/*.log
+**/*.ctxt
+**/*.pcap
+**/*.db
+**/*.db-shm
+**/*.db-wal
+dev_docs/
+dev_scripts/

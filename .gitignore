@@ -1,0 +1,31 @@
+/.env
+/project2/.env
+.env.*
+!.env.example
+secrets/tls/
+*.key
+*.pem
+*.p12
+ca.key
+
+# --- Python / Django ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+db.sqlite3
+staticfiles/
+
+# --- Jenkins / CI runtime ---
+jenkins_home/
+workspace/
+
+# --- Large generated captures (keep the small ones you cite in your report) ---
+*.pcapng
+big-*.pcap
+
+# --- Editor / OS noise ---
+.vscode/
+.idea/
+*.swp
+.DS_Store

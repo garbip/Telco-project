@@ -1,0 +1,13 @@
+diff --git a/sa-deploy.yaml b/sa-deploy.yaml
+index 0217942..4dae29f 100644
+--- a/sa-deploy.yaml
++++ b/sa-deploy.yaml
+@@ -289,7 +289,7 @@ services:
+     expose:
+       - "${METRICS_BIND_PORT}/tcp"
+     ports:
+-      - "${METRICS_BIND_PORT}:${METRICS_BIND_PORT}/tcp"
++      - "9091:${METRICS_BIND_PORT}/tcp"
+     networks:
+       default:
+         ipv4_address: ${METRICS_IP}

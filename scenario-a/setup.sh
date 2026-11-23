@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -143,6 +142,51 @@ iptables -I DOCKER-USER 1 \
     -i "$DOCKER_BRIDGE" -o host-core \
     -s "$NGINX_IP" \
     -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+
+echo "=== Allowing 5G UPF HTTP to Nginx ==="
+
+if docker ps --format '{{.Names}}' | grep -Fxq upf; then
+    OPEN5GS_NETWORK="docker_open5gs_default"
+    OPEN5GS_ID=$(docker network inspect --format '{{.Id}}' "$OPEN5GS_NETWORK")
+    OPEN5GS_BRIDGE="br-${OPEN5GS_ID:0:12}"
+    UPF_IP=$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' upf)
+
+    if [[ -z "$UPF_IP" ]]; then
+        echo "ERROR: Could not determine the UPF IP." >&2
+        exit 1
+    fi
+
+    iptables -C DOCKER-USER \
+        -i "$OPEN5GS_BRIDGE" -o "$DOCKER_BRIDGE" \
+        -s "$UPF_IP" -d "$NGINX_IP" \
+        -p tcp --dport 80 \
+        -m comment --comment project1-upf-to-nginx-http \
+        -j ACCEPT 2>/dev/null ||
+    iptables -I DOCKER-USER 1 \
+        -i "$OPEN5GS_BRIDGE" -o "$DOCKER_BRIDGE" \
+        -s "$UPF_IP" -d "$NGINX_IP" \
+        -p tcp --dport 80 \
+        -m comment --comment project1-upf-to-nginx-http \
+        -j ACCEPT
+
+    iptables -C DOCKER-USER \
+        -i "$OPEN5GS_BRIDGE" -o "$DOCKER_BRIDGE" \
+        -s "$UPF_IP" -d "$NGINX_IP" \
+        -p icmp --icmp-type echo-request \
+        -m comment --comment project1-upf-to-nginx-icmp \
+        -j ACCEPT 2>/dev/null ||
+    iptables -I DOCKER-USER 1 \
+        -i "$OPEN5GS_BRIDGE" -o "$DOCKER_BRIDGE" \
+        -s "$UPF_IP" -d "$NGINX_IP" \
+        -p icmp --icmp-type echo-request \
+        -m comment --comment project1-upf-to-nginx-icmp \
+        -j ACCEPT
+
+else
+    echo "UPF is not running; skipping the 5G-specific firewall rules."
+fi
+
 
 echo "=== Checking for the known nftables blocker ==="
 

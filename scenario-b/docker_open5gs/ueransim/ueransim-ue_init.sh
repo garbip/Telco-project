@@ -41,6 +41,19 @@ sed -i 's|UE1_IMSI|'$UE1_IMSI'|g' /UERANSIM/config/${COMPONENT_NAME}.yaml
 sed -i 's|NR_GNB_IP|'$NR_GNB_IP'|g' /UERANSIM/config/${COMPONENT_NAME}.yaml
 
 ./nr-ue -c ../config/${COMPONENT_NAME}.yaml &
+for attempt in {1..60}; do
+    if ip -4 addr show dev uesimtun0 2>/dev/null | grep -q 'inet '; then
+        ip route replace 10.0.3.0/24 dev uesimtun0
+        break
+    fi
+    sleep 1
+done
+
+if ! ip route get 10.0.3.10 | grep -q 'dev uesimtun0'; then
+    echo "ERROR: UE tunnel did not become ready; route was not installed." >&2
+    exit 1
+fi
+
 exec bash $@
 
 # Sync docker time

@@ -12,7 +12,12 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 BASE="${SUDO_USER:+/home/$SUDO_USER}"
-OUT="${BASE:-$HOME}/telco-map-$(date +%Y%m%d-%H%M%S).txt"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RESULTS_DIR="$SCRIPT_DIR/../results"
+mkdir -p "$RESULTS_DIR"
+OUT="$RESULTS_DIR/telco-map-$(date +%Y%m%d-%H%M%S).txt"
+touch "$OUT"
+[[ -n "${SUDO_USER:-}" ]] && chown "$SUDO_USER": "$OUT" "$RESULTS_DIR"
 exec > >(tee "$OUT") 2>&1
 
 sec() { printf '\n==================== %s ====================\n' "$*"; }
@@ -24,6 +29,39 @@ dx() {
     if [[ -z "$c" ]]; then echo "(container not found)"; return; fi
     printf '$ docker exec %s %s\n' "$c" "$*"
     docker exec "$c" sh -c "$*" 2>&1 || printf '(failed, exit %s)\n' "$?"
+}
+http_test() {
+    local c="$1"
+    local ip="$2"
+    local output rc
+
+    printf '$ docker exec %s HTTP GET http://%s/ (via Bash TCP)\n' "$c" "$ip"
+    output=$(docker exec "$c" timeout 5 bash -c '
+        set -e
+        target="$1"
+        start=$(date +%s%N)
+        exec 3<>"/dev/tcp/$target/80"
+        connected=$(date +%s%N)
+        printf "GET / HTTP/1.0\r\nHost: %s\r\n\r\n" "$target" >&3
+        IFS= read -r status <&3
+        end=$(date +%s%N)
+        code=${status#* }
+        code=${code%% *}
+        connect_ns=$((connected - start))
+        total_ns=$((end - start))
+        printf "http=%s connect=%d.%03ds total=%d.%03ds\n" \
+            "$code" \
+            "$((connect_ns / 1000000000))" \
+            "$(((connect_ns % 1000000000) / 1000000))" \
+            "$((total_ns / 1000000000))" \
+            "$(((total_ns % 1000000000) / 1000000))"
+    ' bash "$ip" 2>&1)
+    rc=$?
+    if (( rc != 0 )); then
+        printf '(HTTP test failed, exit %s): %s\n' "$rc" "$output"
+        return "$rc"
+    fi
+    printf '%s\n' "$output"
 }
 
 UE=$(find_c '^nr_ue$|^ue$|scenario-b-ue|ueransim.*ue')
@@ -101,7 +139,9 @@ for target in "$NGINX" "$IPERF"; do
         echo "--- $target ($ip)"
         dx "$UE" "ip route get $ip"
         dx "$UE" "ping -I uesimtun0 -c 3 -W 2 $ip"
-        dx "$UE" "curl -s -o /dev/null -m 5 --interface uesimtun0 -w 'http=%{http_code} connect=%{time_connect}s total=%{time_total}s\n' http://$ip/"
+        if [[ "$target" == "$NGINX" ]]; then
+            http_test "$UE" "$ip"
+        fi
     done
 done
 [[ -z "$NGINX$IPERF" ]] && echo "No Nginx or iperf3 container found: a data network with services still needs to be added."
